@@ -15,8 +15,9 @@ This is in order for this SoundHooks method to be effective.
 As a last ditch effort as well, I have provided some null files of the missing sound files to be uploaded.
 
 Install instructions:
+================
 
-plugins folder goes to addons/sourcemod/plugins
-scripting folder goes to addons/sourcemod/scripting
-sound goes to main tf directory
-and fastdl is only if you have one and know how to use it.
+- plugins folder goes to addons/sourcemod/plugins
+- scripting folder goes to addons/sourcemod/scripting
+- sound goes to main tf directory
+- fastdl is only if you have one and know how to use it.
