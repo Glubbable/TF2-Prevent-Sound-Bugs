@@ -5,7 +5,7 @@
 #include <sdktools>
 #include <tf2>
 
-#define PLUGIN_VERSION	"1.0"
+#define PLUGIN_VERSION	"1.1"
 #define PLUGIN_DESC	"Prevents a crit loop bug & missing taunt sounds!"
 #define PLUGIN_NAME	"[TF2] Prevents Sound Bugs"
 #define PLUGIN_AUTH	"Glubbable"
@@ -28,8 +28,7 @@ public void OnPluginStart()
 	HookEvent("teamplay_round_win", Event_HookCritSound, EventHookMode);
 	HookEvent("teamplay_round_start", Event_UnHookCritSound, EventHookMode);
 
-	AddNormalSoundHook(view_as<NormalSHook>(SoundHook_StopMissingSounds));
-	AddNormalSoundHook(view_as<NormalSHook>(SoundHook_FixCritSound));
+	AddNormalSoundHook(SoundHook_BuggedSounds);
 }
 
 public Action Event_HookCritSound(Handle event, const char[] name, bool dontBroadcast)
@@ -50,7 +49,7 @@ public Action Event_UnHookCritSound(Handle event, const char[] name, bool dontBr
 		gb_NewRoundStart = true;
 }
 
-public Action SoundHook_FixCritSound(int clients[64], int &numClients, char sound[PLATFORM_MAX_PATH], int &entity, int &channel, float &volume, int &level, int &pitch, int &flags, char soundEntry[PLATFORM_MAX_PATH], int &seed)
+public Action SoundHook_BuggedSounds(int clients[64], int &numClients, char sound[PLATFORM_MAX_PATH], int &entity, int &channel, float &volume, int &level, int &pitch, int &flags, char soundEntry[PLATFORM_MAX_PATH], int &seed)
 {
 	bool b_BlockSound = false;
 
@@ -77,24 +76,6 @@ public Action SoundHook_FixCritSound(int clients[64], int &numClients, char soun
 				}
 			}
 
-			if (b_BlockSound == true)
-			{
-				return Plugin_Changed;
-			}
-		}
-	}
-
-	return Plugin_Continue;
-}
-
-public Action SoundHook_StopMissingSounds(int clients[64], int &numClients, char sound[PLATFORM_MAX_PATH], int &entity, int &channel, float &volume, int &level, int &pitch, int &flags, char soundEntry[PLATFORM_MAX_PATH], int &seed)
-{
-	bool b_BlockSound2 = false;
-
-	if(entity <= MaxClients)
-	{
-		if (IsValidClient(entity))
-		{
 			if (StrContains(sound, "vo/taunts/spy/spy_laughhappy02.mp3", false) != -1
 			|| StrContains(sound, "vo/taunts/engy/engineer_cheers02.mp3", false) != -1 
 			|| StrContains(sound, "vo/spy_hugenemy01.mp3", false) != -1
@@ -110,10 +91,10 @@ public Action SoundHook_StopMissingSounds(int clients[64], int &numClients, char
 				ReplaceString(sound, PLATFORM_MAX_PATH, "vo/taunts/pyro/pyro_highfive_success03.mp3", "misc/null.wav", true);
 				strcopy(sound, PLATFORM_MAX_PATH, "misc/null.wav");
 				PrecacheSound(sound, true);
-				b_BlockSound2 = true;
+				b_BlockSound = true;
 			}
 
-			if (b_BlockSound2 == true)
+			if (b_BlockSound == true)
 			{
 				return Plugin_Changed;
 			}
