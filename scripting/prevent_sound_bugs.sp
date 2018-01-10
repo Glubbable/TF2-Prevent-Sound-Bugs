@@ -5,7 +5,7 @@
 #include <sdktools>
 #include <tf2>
 
-#define PLUGIN_VERSION	"1.2"
+#define PLUGIN_VERSION	"1.3"
 #define PLUGIN_DESC	"Prevents a crit loop bug & missing taunt sounds!"
 #define PLUGIN_NAME	"[TF2] Prevents Sound Bugs"
 #define PLUGIN_AUTH	"Glubbable"
@@ -13,7 +13,7 @@
 
 bool gb_RoundEnd = false;
 
-#define DEBUG
+//#define DEBUG
 
 public const Plugin myinfo =
 {
@@ -27,9 +27,35 @@ public const Plugin myinfo =
 public void OnPluginStart()
 {
 	HookEvent("teamplay_round_win", Event_HookCritSound, EventHookMode_Pre);
-	HookEvent("teamplay_round_start", Event_UnHookCritSound, EventHookMode);
+	HookEvent("teamplay_round_start", Event_UnHookCritSound, EventHookMode_Post);
 
 	AddNormalSoundHook(SoundHook_BuggedSounds);
+
+	PrepareSounds();
+}
+
+public void OnMapStart()
+{
+	PrepareSounds();
+}
+
+void PrepareSounds()
+{
+	PrecacheSound("vo/spy_hugenemy01.mp3");
+	PrecacheSound("vo/spy_hugenemy04.mp3");
+	PrecacheSound("vo/spy_hughugging04.mp3");
+
+	PrecacheSound("vo/taunts/engy/engineer_cheers02.mp3");
+	PrecacheSound("vo/taunts/spy/spy_laughhappy02.mp3");
+	PrecacheSound("vo/taunts/pyro/pyro_highfive_success03.mp3");
+
+	AddFileToDownloadsTable("vo/spy_hugenemy01.mp3");
+	AddFileToDownloadsTable("vo/spy_hugenemy04.mp3");
+	AddFileToDownloadsTable("vo/spy_hughugging04.mp3");
+
+	AddFileToDownloadsTable("vo/taunts/engy/engineer_cheers02.mp3");
+	AddFileToDownloadsTable("vo/taunts/spy/spy_laughhappy02.mp3");
+	AddFileToDownloadsTable("vo/taunts/pyro/pyro_highfive_success03.mp3");
 }
 
 public Action Event_HookCritSound(Handle event, const char[] name, bool dontBroadcast)
@@ -60,16 +86,14 @@ public Action SoundHook_BuggedSounds(int clients[64], int &numClients, char soun
 			return Plugin_Stop;
 		}
 
-		if (gb_RoundEnd == true)
+		if (StrContains(sound, "crit_power.wav", false) != -1)
 		{
-			if (StrContains(sound, "crit_power", false) != -1)
-			{
-				#if defined DEBUG
-				PrintToChatAll("Crit Sound detected and was blocked!");
-				#endif
+			#if defined DEBUG
+			PrintToChatAll("Crit Sound detected and was blocked!");
+			#endif
 
-				return Plugin_Stop;
-			}
+			if (gb_RoundEnd == true) return Plugin_Stop;
+			else return Plugin_Continue;
 		}
 
 		else return Plugin_Continue;
