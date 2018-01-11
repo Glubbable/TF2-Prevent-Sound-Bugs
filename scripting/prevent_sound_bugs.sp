@@ -61,13 +61,13 @@ void PrepareSounds()
 	PrecacheSound("vo/taunts/spy/spy_laughhappy02.mp3");
 	PrecacheSound("vo/taunts/pyro/pyro_highfive_success03.mp3");
 
-	AddFileToDownloadsTable("vo/spy_hugenemy01.mp3");
-	AddFileToDownloadsTable("vo/spy_hugenemy04.mp3");
-	AddFileToDownloadsTable("vo/spy_hughugging04.mp3");
+	AddFileToDownloadsTable("sound/vo/spy_hugenemy01.mp3");
+	AddFileToDownloadsTable("sound/vo/spy_hugenemy04.mp3");
+	AddFileToDownloadsTable("sound/vo/spy_hughugging04.mp3");
 
-	AddFileToDownloadsTable("vo/taunts/engy/engineer_cheers02.mp3");
-	AddFileToDownloadsTable("vo/taunts/spy/spy_laughhappy02.mp3");
-	AddFileToDownloadsTable("vo/taunts/pyro/pyro_highfive_success03.mp3");
+	AddFileToDownloadsTable("sound/vo/taunts/engy/engineer_cheers02.mp3");
+	AddFileToDownloadsTable("sound/vo/taunts/spy/spy_laughhappy02.mp3");
+	AddFileToDownloadsTable("sound/vo/taunts/pyro/pyro_highfive_success03.mp3");
 }
 
 public Action Event_HookCritSound(Handle event, const char[] name, bool dontBroadcast)
