@@ -43,7 +43,7 @@ public void OnPluginStart()
 
 	PrepareSounds();
 
-	Cvar_StunSoundBlock = CreateConVar("sm_blockstunsounds", "1", "Enables/Disables the blocking of Bonk Sounds.");
+	Cvar_StunSoundBlock = CreateConVar("sm_blockstunsounds", "0", "Enables/Disables the blocking of Bonk Sounds.");
 }
 
 public void OnMapStart()
