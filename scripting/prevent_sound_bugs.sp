@@ -21,7 +21,7 @@
 #define TFTeam_Blue 3
 
 bool gb_RoundEnd = false;
-bool gb_BonkBlockMode = false;
+bool gb_StunSoundBlockMode = false;
 
 Handle Cvar_StunSoundBlock;
 
@@ -43,7 +43,7 @@ public void OnPluginStart()
 
 	PrepareSounds();
 
-	Cvar_StunSoundBlock = CreateConVar("sm_blockstunsounds", "0", "Enables/Disables the blocking of Bonk Sounds.");
+	Cvar_StunSoundBlock = CreateConVar("sm_blockstunsounds", "1", "Enables/Disables the blocking of Bonk Sounds.");
 }
 
 public void OnMapStart()
@@ -114,46 +114,33 @@ public Action SoundHook_BuggedSounds(int clients[64], int &numClients, char soun
 			}
 		}
 
-#if defined _sf2_included
 		if (StrContains(sound, "halloween_scream", false) != -1 || StrContains(sound, "pl_impact_stun", false) != -1)
 		{
 			if (entity <= MaxClients)
 			{
-				if (TF2_IsPlayerInCondition(entity, TFCond_Dazed))
+				gb_StunSoundBlockMode = GetConVarBool(Cvar_StunSoundBlock);
+
+				if (gb_StunSoundBlockMode == true)
 				{
-					gb_BonkBlockMode = GetConVarBool(Cvar_StunSoundBlock);
-
-					if (gb_BonkBlockMode == true)
-					{
-						if (IsClientRED(entity) || SF2_IsClientInGhostMode(entity) || SF2_IsClientProxy(entity))
-							return Plugin_Stop;
-					}
-				}
-			}
-		}
-#endif
-
-#if !defined _sf2_included
-		if (StrContains(sound, "halloween_scream", false) != -1 || StrContains(sound, "pl_impact_stun", false) != -1)
-		{
-			if (entity <= MaxClients)
-			{
-				if (TF2_IsPlayerInCondition(entity, TFCond_Dazed))
-				{
-					gb_BonkBlockMode = GetConVarBool(Cvar_StunSoundBlock);
-
-					if (gb_BonkBlockMode == true)
+					#if defined _sf2_included
+					if (IsClientRED(entity))
 						return Plugin_Stop;
+					#endif
+
+					#if !defined _sf2_included
+					return Plugin_Stop;
+					#endif
 				}
 			}
 		}
-#endif
+
 		else return Plugin_Continue;
 	}
 
 	return Plugin_Continue;
 }
 
+#if defined _sf2_included
 stock bool IsClientRED(int client, bool tfteam = true)
 {
 	int team = GetClientTeam(client);
@@ -164,3 +151,4 @@ stock bool IsClientRED(int client, bool tfteam = true)
 
 	return false;
 }
+#endif
