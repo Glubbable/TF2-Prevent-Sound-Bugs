@@ -5,7 +5,7 @@
 #include <sdktools>
 #include <tf2>
 #include <tf2_stocks>
-//#tryinclude <sf2>
+#tryinclude <sf2>
 
 //#define DEBUG
 
