@@ -9,7 +9,7 @@
 
 //#define DEBUG
 
-#define PLUGIN_VERSION	"1.4"
+#define PLUGIN_VERSION	"1.5"
 #define PLUGIN_DESC	"Prevents a crit loop bug & missing taunt sounds!"
 #define PLUGIN_NAME	"[TF2] Prevents Sound Bugs"
 #define PLUGIN_AUTH	"Glubbable"
@@ -82,61 +82,66 @@ public Action Event_UnHookCritSound(Handle event, const char[] name, bool dontBr
 
 public Action SoundHook_BuggedSounds(int clients[64], int &numClients, char sound[PLATFORM_MAX_PATH], int &entity, int &channel, float &volume, int &level, int &pitch, int &flags, char soundEntry[PLATFORM_MAX_PATH], int &seed)
 {
-	if (IsValidEntity(entity))
+	for (int client = 1; client < numClients; client++)
 	{
-		if (StrContains(sound, "vo/taunts/spy/spy_laughhappy02.mp3", false) != -1
-		|| StrContains(sound, "vo/taunts/engy/engineer_cheers02.mp3", false) != -1 
-		|| StrContains(sound, "vo/spy_hugenemy01.mp3", false) != -1
-		|| StrContains(sound, "vo/spy_hugenemy04.mp3", false) != -1
-		|| StrContains(sound, "vo/spy_hughugging04.mp3", false) != -1
-		|| StrContains(sound, "vo/taunts/pyro/pyro_highfive_success03.mp3", false) != -1)
+		if (IsValidEntity(entity))
 		{
-			if (entity <= MaxClients)
+			if (StrContains(sound, "vo/taunts/spy/spy_laughhappy02.mp3", false) != -1
+			|| StrContains(sound, "vo/taunts/engy/engineer_cheers02.mp3", false) != -1 
+			|| StrContains(sound, "vo/spy_hugenemy01.mp3", false) != -1
+			|| StrContains(sound, "vo/spy_hugenemy04.mp3", false) != -1
+			|| StrContains(sound, "vo/spy_hughugging04.mp3", false) != -1
+			|| StrContains(sound, "vo/taunts/pyro/pyro_highfive_success03.mp3", false) != -1)
 			{
-				#if defined DEBUG
-				PrintToChatAll("Missing sound was detected and we attempted to block it!");
-				#endif
-
-				return Plugin_Stop;
-			}
-		}
-
-		if (StrContains(sound, "crit_power.wav", false) != -1)
-		{
-			if (entity <= MaxClients)
-			{
-				#if defined DEBUG
-				PrintToChatAll("Crit Sound detected and was blocked!");
-				#endif
-
-				if (gb_RoundEnd == true)
-					return Plugin_Stop;
-			}
-		}
-
-		if (StrContains(sound, "halloween_scream", false) != -1 || StrContains(sound, "pl_impact_stun", false) != -1)
-		{
-			if (entity <= MaxClients)
-			{
-				gb_StunSoundBlockMode = GetConVarBool(Cvar_StunSoundBlock);
-
-				if (gb_StunSoundBlockMode == true)
+				if (entity == client)
 				{
-					#if defined _sf2_included
-					if (IsClientRED(entity))
-						return Plugin_Stop;
+					#if defined DEBUG
+					PrintToChatAll("Missing sound was detected and we attempted to block it!");
 					#endif
-
-					#if !defined _sf2_included
+	
 					return Plugin_Stop;
-					#endif
 				}
 			}
+	
+			if (StrContains(sound, "crit_power.wav", false) != -1)
+			{
+				if (entity == client)
+				{
+					#if defined DEBUG
+					PrintToChatAll("Crit Sound detected and was blocked!");
+					#endif
+	
+					if (gb_RoundEnd == true)
+						return Plugin_Stop;
+				}
+			}
+	
+			if (StrContains(sound, "halloween_scream", false) != -1 
+			|| StrContains(sound, "pl_impact_stun", false) != -1
+			|| StrContains(sound, "pl_impact_stun_range", false) != -1)
+			{
+				if (entity == client)
+				{
+					gb_StunSoundBlockMode = GetConVarBool(Cvar_StunSoundBlock);
+	
+					if (gb_StunSoundBlockMode == true)
+					{
+						#if defined _sf2_included
+						if (IsClientRED(entity) || IsClientBLU(entity))
+							return Plugin_Stop;
+						#endif
+	
+						#if !defined _sf2_included
+						return Plugin_Stop;
+						#endif
+					}
+				}
+			}
+			
+			else return Plugin_Continue;
 		}
-
-		else return Plugin_Continue;
 	}
-
+	
 	return Plugin_Continue;
 }
 
@@ -148,6 +153,17 @@ stock bool IsClientRED(int client, bool tfteam = true)
 	if (team == TFTeam_Spectator) return false;
 	if (team == TFTeam_Red) return true;
 	if (team == TFTeam_Blue) return false;
+
+	return false;
+}
+
+stock bool IsClientBLU(int client, bool tfteam = true)
+{
+	int team = GetClientTeam(client);
+	if (team == TFTeam_Unassigned) return false;
+	if (team == TFTeam_Spectator) return false;
+	if (team == TFTeam_Red) return false;
+	if (team == TFTeam_Blue) return true;
 
 	return false;
 }
