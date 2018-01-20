@@ -5,7 +5,7 @@
 #include <sdktools>
 #include <tf2>
 #include <tf2_stocks>
-#tryinclude <sf2>
+//#tryinclude <sf2>
 
 //#define DEBUG
 
@@ -93,35 +93,27 @@ public Action SoundHook_BuggedSounds(int clients[64], int &numClients, char soun
 			|| StrContains(sound, "vo/spy_hughugging04.mp3", false) != -1
 			|| StrContains(sound, "vo/taunts/pyro/pyro_highfive_success03.mp3", false) != -1)
 			{
-				if (entity == client)
-				{
 					#if defined DEBUG
 					PrintToChatAll("Missing sound was detected and we attempted to block it!");
 					#endif
 	
 					return Plugin_Stop;
-				}
 			}
 	
 			if (StrContains(sound, "crit_power.wav", false) != -1)
 			{
-				if (entity == client)
-				{
 					#if defined DEBUG
 					PrintToChatAll("Crit Sound detected and was blocked!");
 					#endif
 	
 					if (gb_RoundEnd == true)
 						return Plugin_Stop;
-				}
 			}
 	
 			if (StrContains(sound, "halloween_scream", false) != -1 
 			|| StrContains(sound, "pl_impact_stun", false) != -1
 			|| StrContains(sound, "pl_impact_stun_range", false) != -1)
 			{
-				if (entity == client)
-				{
 					gb_StunSoundBlockMode = GetConVarBool(Cvar_StunSoundBlock);
 	
 					if (gb_StunSoundBlockMode == true)
@@ -129,13 +121,15 @@ public Action SoundHook_BuggedSounds(int clients[64], int &numClients, char soun
 						#if defined _sf2_included
 						if (IsClientRED(entity) || IsClientBLU(entity))
 							return Plugin_Stop;
+						
+						if (IsClientRED(client) || IsClientBLU(client))
+							return Plugin_Stop;
 						#endif
 	
 						#if !defined _sf2_included
 						return Plugin_Stop;
 						#endif
 					}
-				}
 			}
 			
 			else return Plugin_Continue;
