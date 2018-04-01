@@ -5,11 +5,14 @@
 #include <sdktools>
 #include <tf2>
 #include <tf2_stocks>
-//#tryinclude <sf2>
+
+#undef REQUIRE_PLUGIN
+#tryinclude <sf2>
+#define REQUIRE_PLUGIN
 
 //#define DEBUG
 
-#define PLUGIN_VERSION	"1.5"
+#define PLUGIN_VERSION	"1.6"
 #define PLUGIN_DESC	"Prevents a crit loop bug & missing taunt sounds!"
 #define PLUGIN_NAME	"[TF2] Prevents Sound Bugs"
 #define PLUGIN_AUTH	"Glubbable"
@@ -80,18 +83,18 @@ public Action Event_UnHookCritSound(Handle event, const char[] name, bool dontBr
 	gb_RoundEnd = false;
 }
 
-public Action SoundHook_BuggedSounds(int clients[64], int &numClients, char sound[PLATFORM_MAX_PATH], int &entity, int &channel, float &volume, int &level, int &pitch, int &flags, char soundEntry[PLATFORM_MAX_PATH], int &seed)
+public Action SoundHook_BuggedSounds(int iClients[64], int &numClients, char sSound[PLATFORM_MAX_PATH], int &iEntity, int &iChannel, float &flVolume, int &iLevel, int &iPitch, int &iFlags, char sSoundEntry[PLATFORM_MAX_PATH], int &iSeed)
 {
-	for (int client = 1; client < numClients; client++)
+	for (int iClient = 1; iClient < numClients; iClient++)
 	{
-		if (IsValidEntity(entity))
+		if (IsValidEntity(iEntity))
 		{
-			if (StrContains(sound, "vo/taunts/spy/spy_laughhappy02.mp3", false) != -1
-			|| StrContains(sound, "vo/taunts/engy/engineer_cheers02.mp3", false) != -1 
-			|| StrContains(sound, "vo/spy_hugenemy01.mp3", false) != -1
-			|| StrContains(sound, "vo/spy_hugenemy04.mp3", false) != -1
-			|| StrContains(sound, "vo/spy_hughugging04.mp3", false) != -1
-			|| StrContains(sound, "vo/taunts/pyro/pyro_highfive_success03.mp3", false) != -1)
+			if (StrContains(sSound, "vo/taunts/spy/spy_laughhappy02.mp3", false) != -1
+			|| StrContains(sSound, "vo/taunts/engy/engineer_cheers02.mp3", false) != -1 
+			|| StrContains(sSound, "vo/spy_hugenemy01.mp3", false) != -1
+			|| StrContains(sSound, "vo/spy_hugenemy04.mp3", false) != -1
+			|| StrContains(sSound, "vo/spy_hughugging04.mp3", false) != -1
+			|| StrContains(sSound, "vo/taunts/pyro/pyro_highfive_success03.mp3", false) != -1)
 			{
 					#if defined DEBUG
 					PrintToChatAll("Missing sound was detected and we attempted to block it!");
@@ -100,7 +103,7 @@ public Action SoundHook_BuggedSounds(int clients[64], int &numClients, char soun
 					return Plugin_Stop;
 			}
 	
-			if (StrContains(sound, "crit_power.wav", false) != -1)
+			else if (StrContains(sSound, "crit_power.wav", false) != -1)
 			{
 					#if defined DEBUG
 					PrintToChatAll("Crit Sound detected and was blocked!");
@@ -110,19 +113,19 @@ public Action SoundHook_BuggedSounds(int clients[64], int &numClients, char soun
 						return Plugin_Stop;
 			}
 	
-			if (StrContains(sound, "halloween_scream", false) != -1 
-			|| StrContains(sound, "pl_impact_stun", false) != -1
-			|| StrContains(sound, "pl_impact_stun_range", false) != -1)
+			else if (StrContains(sSound, "halloween_scream", false) != -1 
+			|| StrContains(sSound, "pl_impact_stun", false) != -1
+			|| StrContains(sSound, "pl_impact_stun_range", false) != -1)
 			{
 					gb_StunSoundBlockMode = GetConVarBool(Cvar_StunSoundBlock);
 	
 					if (gb_StunSoundBlockMode == true)
 					{
 						#if defined _sf2_included
-						if (IsClientRED(entity) || IsClientBLU(entity))
+						if (IsClientRED(iEntity) || IsClientBLU(iEntity))
 							return Plugin_Stop;
-						
-						if (IsClientRED(client) || IsClientBLU(client))
+
+						if (IsClientRED(iClient) || IsClientBLU(iClient))
 							return Plugin_Stop;
 						#endif
 	
@@ -140,25 +143,29 @@ public Action SoundHook_BuggedSounds(int clients[64], int &numClients, char soun
 }
 
 #if defined _sf2_included
-stock bool IsClientRED(int client, bool tfteam = true)
+stock bool IsClientRED(int iClient)
 {
-	int team = GetClientTeam(client);
-	if (team == TFTeam_Unassigned) return false;
-	if (team == TFTeam_Spectator) return false;
-	if (team == TFTeam_Red) return true;
-	if (team == TFTeam_Blue) return false;
+	int iTeam = GetClientTeam(iClient);
 
-	return false;
+	switch (iTeam)
+	{
+		case TFTeam_Red: return true;
+		default: return false;
+	}
+
+	return true;
 }
 
-stock bool IsClientBLU(int client, bool tfteam = true)
+stock bool IsClientBLU(int iClient)
 {
-	int team = GetClientTeam(client);
-	if (team == TFTeam_Unassigned) return false;
-	if (team == TFTeam_Spectator) return false;
-	if (team == TFTeam_Red) return false;
-	if (team == TFTeam_Blue) return true;
+	int iTeam = GetClientTeam(iClient);
 
-	return false;
+	switch (iTeam)
+	{
+		case TFTeam_Blue: return true;
+		default: return false;
+	}
+
+	return true;
 }
 #endif
