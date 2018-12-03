@@ -12,21 +12,16 @@
 
 //#define DEBUG
 
-#define PLUGIN_VERSION	"1.6"
+#define PLUGIN_VERSION	"1.7"
 #define PLUGIN_DESC	"Prevents a crit loop bug & missing taunt sounds!"
 #define PLUGIN_NAME	"[TF2] Prevents Sound Bugs"
 #define PLUGIN_AUTH	"Glubbable"
 #define PLUGIN_URL	"http://steamcommunity.com/id/glubbable/"
 
-#define TFTeam_Unassigned 0
-#define TFTeam_Spectator 1
-#define TFTeam_Red 2
-#define TFTeam_Blue 3
+bool g_bRoundEnd = false;
+bool g_bStunSoundBlockMode = false;
 
-bool gb_RoundEnd = false;
-bool gb_StunSoundBlockMode = false;
-
-Handle Cvar_StunSoundBlock;
+ConVar g_cvStunSoundBlock;
 
 public const Plugin myinfo =
 {
@@ -46,7 +41,7 @@ public void OnPluginStart()
 
 	PrepareSounds();
 
-	Cvar_StunSoundBlock = CreateConVar("sm_blockstunsounds", "0", "Enables/Disables the blocking of Bonk Sounds.");
+	g_cvStunSoundBlock = CreateConVar("sm_blockstunsounds", "0", "Enables/Disables the blocking of Bonk Sounds.");
 }
 
 public void OnMapStart()
@@ -75,19 +70,19 @@ void PrepareSounds()
 
 public Action Event_HookCritSound(Handle event, const char[] name, bool dontBroadcast)
 {
-	gb_RoundEnd = true;
+	g_bRoundEnd = true;
 }
 
 public Action Event_UnHookCritSound(Handle event, const char[] name, bool dontBroadcast)
 {
-	gb_RoundEnd = false;
+	g_bRoundEnd = false;
 }
 
 public Action SoundHook_BuggedSounds(int iClients[64], int &numClients, char sSound[PLATFORM_MAX_PATH], int &iEntity, int &iChannel, float &flVolume, int &iLevel, int &iPitch, int &iFlags, char sSoundEntry[PLATFORM_MAX_PATH], int &iSeed)
 {
 	for (int iClient = 1; iClient < numClients; iClient++)
 	{
-		if (IsValidEntity(iEntity))
+		if (iEntity && IsValidEntity(iEntity))
 		{
 			if (StrContains(sSound, "vo/taunts/spy/spy_laughhappy02.mp3", false) != -1
 			|| StrContains(sSound, "vo/taunts/engy/engineer_cheers02.mp3", false) != -1 
@@ -109,7 +104,7 @@ public Action SoundHook_BuggedSounds(int iClients[64], int &numClients, char sSo
 					PrintToChatAll("Crit Sound detected and was blocked!");
 					#endif
 	
-					if (gb_RoundEnd == true)
+					if (g_bRoundEnd)
 						return Plugin_Stop;
 			}
 	
@@ -117,15 +112,15 @@ public Action SoundHook_BuggedSounds(int iClients[64], int &numClients, char sSo
 			|| StrContains(sSound, "pl_impact_stun", false) != -1
 			|| StrContains(sSound, "pl_impact_stun_range", false) != -1)
 			{
-					gb_StunSoundBlockMode = GetConVarBool(Cvar_StunSoundBlock);
+					g_bStunSoundBlockMode = g_cvStunSoundBlock.BoolValue;
 	
-					if (gb_StunSoundBlockMode == true)
+					if (g_bStunSoundBlockMode && iEntity <= MaxClients)
 					{
 						#if defined _sf2_included
-						if (IsClientRED(iEntity) || IsClientBLU(iEntity))
+						if (TF2_GetClientTeam(iEntity) >= TFTeam_Red)
 							return Plugin_Stop;
 
-						if (IsClientRED(iClient) || IsClientBLU(iClient))
+						else if (TF2_GetClientTeam(iClient) >= TFTeam_Red)
 							return Plugin_Stop;
 						#endif
 	
@@ -141,31 +136,3 @@ public Action SoundHook_BuggedSounds(int iClients[64], int &numClients, char sSo
 	
 	return Plugin_Continue;
 }
-
-#if defined _sf2_included
-stock bool IsClientRED(int iClient)
-{
-	int iTeam = GetClientTeam(iClient);
-
-	switch (iTeam)
-	{
-		case TFTeam_Red: return true;
-		default: return false;
-	}
-
-	return true;
-}
-
-stock bool IsClientBLU(int iClient)
-{
-	int iTeam = GetClientTeam(iClient);
-
-	switch (iTeam)
-	{
-		case TFTeam_Blue: return true;
-		default: return false;
-	}
-
-	return true;
-}
-#endif
